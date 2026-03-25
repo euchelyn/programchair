@@ -193,7 +193,7 @@ export default function ProgramChairDashboard() {
                 if (surveyFormType === 'po') {
                     setFormTitle('1st Year PO Survey');
                     setFormDesc('Evaluate your proficiency based on the scale: 1 (Lowest) to 5 (Highest).');
-                    setQuestions([{ id: 'q1', type: 'likert', text: 'How well can you apply mathematics to engineering problems?' }]);
+                    setQuestions([{ id: 'q1', poId: 'A', text: 'Knowledge on mathematics and scientific concepts', options: ['Knows basic mathematical concepts related to engineering problems'], weight: 100 }]);
                 } else if (surveyFormType === 'peo') {
                     setFormTitle('3-5 Year PEO Survey');
                     setFormDesc('Evaluate your attainment of the Program Educational Objectives.');
@@ -353,6 +353,12 @@ export default function ProgramChairDashboard() {
     const addQuestion = () => {
         const newId = `q_${Date.now()}`;
         setQuestions([...questions, { id: newId, type: 'likert', text: 'Untitled Question' }]);
+        setActiveQuestionId(newId);
+    };
+
+    const addPOQuestion = (poId) => {
+        const newId = `q_${Date.now()}`;
+        setQuestions([...questions, { id: newId, poId: poId, type: 'likert', text: 'Untitled Question', options: ['New Sub-item'], weight: 0 }]);
         setActiveQuestionId(newId);
     };
 
@@ -1161,169 +1167,321 @@ export default function ProgramChairDashboard() {
                                         <span style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>{questions.length} Items</span>
                                     </div>
 
-                                    {questions.map((q, index) => {
-                                        const isActive = activeQuestionId === q.id;
-                                        const isHovered = hoveredQuestionId === q.id;
-                                        
-                                        return (
-                                            <div 
-                                                key={q.id} 
-                                                className="portal-card" 
-                                                onMouseEnter={() => setHoveredQuestionId(q.id)}
-                                                onMouseLeave={() => setHoveredQuestionId(null)}
-                                                onClick={() => setActiveQuestionId(q.id)} 
+                                    {surveyFormType === 'po' ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+                                            {PO_DEFINITIONS.map((po) => {
+                                                const poQuestions = questions.filter(q => q.poId === po.id);
+                                                const currentPoWeight = poQuestions.reduce((sum, q) => sum + (Number(q.weight) || 0), 0);
+                                                return (
+                                                    <div key={po.id} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
+                                                            <div style={{ flex: 1, paddingRight: '20px' }}>
+                                                                <h3 style={{ color: 'var(--gold)', margin: '0 0 5px 0', fontSize: '1.1rem' }}>PO-{po.id}: {po.title}</h3>
+                                                                <p style={{ color: 'var(--text-sub)', margin: 0, fontSize: '0.85rem', lineHeight: '1.4' }}>{po.desc}</p>
+                                                            </div>
+                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+                                                                <span style={{ fontSize: '0.9rem', color: currentPoWeight === 100 ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>
+                                                                    Total Weight: {currentPoWeight}%
+                                                                </span>
+                                                                {currentPoWeight !== 100 && poQuestions.length > 0 && (
+                                                                    <span style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 'bold' }}>⚠️ Must equal exactly 100%</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {poQuestions.length === 0 ? (
+                                                            <div style={{ border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', padding: '30px', textAlign: 'center' }}>
+                                                                <p style={{ color: 'var(--text-sub)', marginBottom: '15px' }}>No questions added for PO-{po.id} yet.</p>
+                                                                <button 
+                                                                    onClick={() => addPOQuestion(po.id)} 
+                                                                    style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', color: 'var(--gold)', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s' }}
+                                                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(234, 179, 8, 0.2)'}
+                                                                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(234, 179, 8, 0.1)'}
+                                                                >
+                                                                    + Add First Question
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                {poQuestions.map((q, index) => {
+                                                                    const isActive = activeQuestionId === q.id;
+                                                                    const isHovered = hoveredQuestionId === q.id;
+                                                                    return (
+                                                                        <div 
+                                                                            key={q.id} 
+                                                                            className="portal-card" 
+                                                                            onMouseEnter={() => setHoveredQuestionId(q.id)}
+                                                                            onMouseLeave={() => setHoveredQuestionId(null)}
+                                                                            onClick={() => setActiveQuestionId(q.id)} 
+                                                                            style={{ 
+                                                                                padding: '25px', 
+                                                                                borderRadius: '12px', 
+                                                                                cursor: 'pointer', 
+                                                                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
+                                                                                borderLeft: isActive ? '4px solid #3b82f6' : (isHovered ? '4px solid #eab308' : '4px solid transparent'), 
+                                                                                boxShadow: isActive ? '0 8px 16px rgba(0,0,0,0.2)' : (isHovered ? '0 4px 8px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.05)'), 
+                                                                                border: isActive ? 'none' : '1px solid rgba(255,255,255,0.05)', 
+                                                                                backgroundColor: isActive ? 'var(--bg-card)' : (isHovered ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0,0,0,0.2)'),
+                                                                                transform: isHovered && !isActive ? 'translateY(-2px)' : 'none'
+                                                                            }}
+                                                                        >
+                                                                            <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-start', marginBottom: '15px' }}>
+                                                                                <div style={{ color: 'var(--gold)', fontWeight: 'bold', fontSize: '1.2rem', marginTop: '8px' }}>{index + 1}.</div>
+                                                                                <div style={{ flex: 1 }}>
+                                                                                    <input 
+                                                                                        type="text" 
+                                                                                        value={q.text} 
+                                                                                        onChange={(e) => updateQuestion(q.id, 'text', e.target.value)} 
+                                                                                        placeholder="Type question title here..." 
+                                                                                        style={{ width: '100%', fontSize: '1.1rem', background: 'transparent', color: 'var(--text-main)', border: 'none', outline: 'none', padding: '10px 0', borderBottom: isActive || isHovered ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent', transition: 'border-color 0.3s' }} 
+                                                                                    />
+                                                                                </div>
+                                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: 'rgba(0,0,0,0.2)', padding: '5px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)', opacity: isActive || isHovered ? 1 : 0.5, transition: 'opacity 0.2s' }}>
+                                                                                    <input
+                                                                                        type="number"
+                                                                                        className="correction-textbox"
+                                                                                        value={q.weight || ''}
+                                                                                        onChange={(e) => updateQuestion(q.id, 'weight', e.target.value)}
+                                                                                        placeholder="0"
+                                                                                        style={{ width: '40px', height: '30px', textAlign: 'center', padding: 0, backgroundColor: 'var(--bg-main)' }}
+                                                                                    />
+                                                                                    <span style={{ color: 'var(--text-sub)', fontWeight: 'bold', fontSize: '0.85rem' }}>%</span>
+                                                                                </div>
+                                                                                <button 
+                                                                                    onClick={(e) => { e.stopPropagation(); deleteQuestion(q.id); }} 
+                                                                                    style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', cursor: 'pointer', fontSize: '1rem', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.2s', opacity: isActive || isHovered ? 1 : 0 }}
+                                                                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
+                                                                                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                                                                                >
+                                                                                    🗑️
+                                                                                </button>
+                                                                            </div>
+
+                                                                            <div style={{ marginLeft: '30px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '15px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                                                <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px', marginBottom: '10px' }}>
+                                                                                    <div style={{ flex: 1 }}></div>
+                                                                                    <div style={{ display: 'flex', width: '220px', justifyContent: 'space-between', color: 'var(--text-sub)', fontSize: '0.85rem', fontWeight: 'bold', paddingRight: '40px' }}>
+                                                                                        <span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                                
+                                                                                {q.options?.map((opt, optIndex) => (
+                                                                                    <div key={optIndex} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                                                                                        <div style={{ flex: 1, paddingRight: '15px' }}>
+                                                                                            <input 
+                                                                                                type="text" 
+                                                                                                value={opt} 
+                                                                                                onChange={(e) => handleOptionTextChange(q.id, optIndex, e.target.value)} 
+                                                                                                style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-main)', padding: '5px', fontSize: '0.9rem', outline: 'none' }} 
+                                                                                                placeholder={`Sub-item ${optIndex + 1}`} 
+                                                                                            />
+                                                                                        </div>
+                                                                                        <div style={{ display: 'flex', width: '220px', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                                            <input type="radio" disabled style={{ opacity: 0.5 }}/>
+                                                                                            <input type="radio" disabled style={{ opacity: 0.5 }}/>
+                                                                                            <input type="radio" disabled style={{ opacity: 0.5 }}/>
+                                                                                            <input type="radio" disabled style={{ opacity: 0.5 }}/>
+                                                                                            <input type="radio" disabled style={{ opacity: 0.5 }}/>
+                                                                                            <button onClick={(e) => { e.stopPropagation(); handleRemoveOption(q.id, optIndex); }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0 0 15px', opacity: isActive ? 1 : 0 }}>×</button>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+
+                                                                                {isActive && (
+                                                                                    <button 
+                                                                                        onClick={(e) => { e.stopPropagation(); handleAddOption(q.id); }} 
+                                                                                        style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', color: 'var(--gold)', cursor: 'pointer', fontSize: '0.85rem', padding: '6px 12px', borderRadius: '6px', marginTop: '10px' }}
+                                                                                    >
+                                                                                        + Add Sub-item
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                                <button 
+                                                                    onClick={() => addPOQuestion(po.id)} 
+                                                                    style={{ 
+                                                                        border: '2px dashed rgba(234, 179, 8, 0.3)', background: 'transparent', color: 'var(--gold)', padding: '15px', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.3s ease', fontSize: '1rem', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' 
+                                                                    }} 
+                                                                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(234, 179, 8, 0.1)'; e.currentTarget.style.borderColor = 'var(--gold)'; }} 
+                                                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(234, 179, 8, 0.3)'; }}
+                                                                >
+                                                                    <span style={{ fontSize: '1.2rem' }}>➕</span> Add New Question to PO-{po.id}
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {questions.map((q, index) => {
+                                                const isActive = activeQuestionId === q.id;
+                                                const isHovered = hoveredQuestionId === q.id;
+                                                
+                                                return (
+                                                    <div 
+                                                        key={q.id} 
+                                                        className="portal-card" 
+                                                        onMouseEnter={() => setHoveredQuestionId(q.id)}
+                                                        onMouseLeave={() => setHoveredQuestionId(null)}
+                                                        onClick={() => setActiveQuestionId(q.id)} 
+                                                        style={{ 
+                                                            padding: '25px', 
+                                                            borderRadius: '12px', 
+                                                            cursor: 'pointer', 
+                                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
+                                                            borderLeft: isActive ? '4px solid #3b82f6' : (isHovered ? '4px solid #eab308' : '4px solid transparent'), 
+                                                            boxShadow: isActive ? '0 8px 16px rgba(0,0,0,0.2)' : (isHovered ? '0 4px 8px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.05)'), 
+                                                            border: isActive ? 'none' : '1px solid rgba(255,255,255,0.05)', 
+                                                            backgroundColor: isActive ? 'var(--bg-card)' : (isHovered ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0,0,0,0.2)'),
+                                                            transform: isHovered && !isActive ? 'translateY(-2px)' : 'none'
+                                                        }}
+                                                    >
+                                                        <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
+                                                            <div style={{ color: 'var(--gold)', fontWeight: 'bold', fontSize: '1.2rem', marginTop: '8px' }}>{index + 1}.</div>
+                                                            <div style={{ flex: 1 }}>
+                                                                <input 
+                                                                    type="text" 
+                                                                    value={q.text} 
+                                                                    onChange={(e) => updateQuestion(q.id, 'text', e.target.value)} 
+                                                                    placeholder="Type question here..." 
+                                                                    style={{ width: '100%', fontSize: '1.1rem', background: 'transparent', color: 'var(--text-main)', border: 'none', outline: 'none', padding: '10px 0', borderBottom: isActive || isHovered ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent', transition: 'border-color 0.3s' }} 
+                                                                />
+                                                                
+                                                                <div style={{ marginTop: '15px', transition: 'opacity 0.3s' }}>
+                                                                    {q.type === 'likert' && (
+                                                                        <div style={{ display: 'flex', gap: '20px', color: 'var(--text-sub)', fontSize: '0.9rem', alignItems: 'center', opacity: 0.5, pointerEvents: 'none' }}><span>1</span><input type="radio" disabled /><input type="radio" disabled /><input type="radio" disabled /><input type="radio" disabled /><input type="radio" disabled /><span>5</span></div>
+                                                                    )}
+                                                                    {q.type === 'yesno' && (
+                                                                        <div style={{ display: 'flex', gap: '20px', color: 'var(--text-sub)', opacity: 0.5, pointerEvents: 'none' }}><label><input type="radio" disabled /> Yes</label><label><input type="radio" disabled /> No</label></div>
+                                                                    )}
+                                                                    {q.type === 'text' && (
+                                                                        <div style={{ borderBottom: '1px dashed var(--text-sub)', width: '100%', height: '20px', opacity: 0.5, pointerEvents: 'none' }}></div>
+                                                                    )}
+                                                                    {q.type === 'textarea' && (
+                                                                        <div style={{ border: '1px dashed var(--text-sub)', width: '100%', height: '60px', borderRadius: '4px', opacity: 0.5, pointerEvents: 'none' }}></div>
+                                                                    )}
+                                                                    {q.type === 'email' && (
+                                                                        <div style={{ borderBottom: '1px dashed var(--text-sub)', width: '60%', height: '20px', opacity: 0.5, pointerEvents: 'none' }}></div>
+                                                                    )}
+                                                                    {q.type === 'date' && (
+                                                                        <input type="date" disabled style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-sub)', padding: '8px', borderRadius: '6px', cursor: 'not-allowed', opacity: 0.5 }} />
+                                                                    )}
+                                                                    
+                                                                    {['radio', 'checkbox', 'dropdown'].includes(q.type) && isActive && (
+                                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                                                                            {(q.options || ['Option 1']).map((opt, optIndex) => (
+                                                                                <div key={optIndex} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                                    {q.type === 'radio' && <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid var(--text-sub)' }}></div>}
+                                                                                    {q.type === 'checkbox' && <div style={{ width: '16px', height: '16px', borderRadius: '4px', border: '2px solid var(--text-sub)' }}></div>}
+                                                                                    {q.type === 'dropdown' && <span style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>{optIndex + 1}.</span>}
+                                                                                    
+                                                                                    <input 
+                                                                                        type="text" 
+                                                                                        value={opt} 
+                                                                                        onChange={(e) => handleOptionTextChange(q.id, optIndex, e.target.value)} 
+                                                                                        style={{ flex: 1, background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-main)', padding: '5px', outline: 'none' }}
+                                                                                        placeholder={`Option ${optIndex + 1}`}
+                                                                                    />
+                                                                                    <button onClick={(e) => { e.stopPropagation(); handleRemoveOption(q.id, optIndex); }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.2rem', padding: '0 5px' }} title="Remove Option">×</button>
+                                                                                </div>
+                                                                            ))}
+                                                                            <button onClick={(e) => { e.stopPropagation(); handleAddOption(q.id); }} style={{ alignSelf: 'flex-start', background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', color: 'var(--gold)', cursor: 'pointer', fontSize: '0.85rem', padding: '6px 12px', borderRadius: '6px', marginTop: '8px' }}>+ Add Option</button>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {['radio', 'checkbox', 'dropdown'].includes(q.type) && !isActive && (
+                                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-sub)', opacity: 0.5, pointerEvents: 'none' }}>
+                                                                            {(q.options || ['Option 1']).slice(0, 2).map((opt, i) => (
+                                                                                <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                                    {q.type === 'radio' && <input type="radio" disabled />}
+                                                                                    {q.type === 'checkbox' && <input type="checkbox" disabled />}
+                                                                                    {q.type === 'dropdown' && <span>{i + 1}.</span>}
+                                                                                    {opt}
+                                                                                </label>
+                                                                            ))}
+                                                                            {(q.options?.length || 0) > 2 && <span style={{ fontSize: '0.85rem', marginLeft: '25px' }}>...and {(q.options.length) - 2} more</span>}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div style={{ 
+                                                            marginTop: isActive || isHovered ? '20px' : '0', 
+                                                            paddingTop: isActive || isHovered ? '20px' : '0', 
+                                                            borderTop: isActive || isHovered ? '1px solid rgba(255,255,255,0.1)' : 'none', 
+                                                            display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '15px',
+                                                            maxHeight: isActive || isHovered ? '100px' : '0',
+                                                            opacity: isActive || isHovered ? 1 : 0,
+                                                            overflow: 'hidden',
+                                                            transition: 'all 0.3s ease'
+                                                        }}>
+                                                            <select 
+                                                                className="correction-textbox" 
+                                                                value={q.type} 
+                                                                onChange={(e) => updateQuestion(q.id, 'type', e.target.value)} 
+                                                                style={{ width: '220px', margin: 0 }}
+                                                            >
+                                                                <option value="text">📝 Short answer</option>
+                                                                <option value="textarea">📄 Paragraph</option>
+                                                                <option value="email">📧 Email</option>
+                                                                <option value="date">📅 Date</option>
+                                                                <option value="yesno">✔️ Yes / No Option</option>
+                                                                <option value="radio">🔘 Multiple Choice</option>
+                                                                <option value="checkbox">☑️ Checkboxes (Multiple)</option>
+                                                                <option value="dropdown">🔽 Dropdown</option>
+                                                                <option value="likert">📊 Linear scale (1-5)</option>
+                                                            </select>
+                                                            
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); deleteQuestion(q.id); }} 
+                                                                style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', cursor: 'pointer', fontSize: '1rem', padding: '10px 15px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.2s' }}
+                                                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
+                                                                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                                                            >
+                                                                🗑️ Delete
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+
+                                            <button 
+                                                onClick={addQuestion} 
                                                 style={{ 
+                                                    border: '2px dashed rgba(234, 179, 8, 0.5)', 
+                                                    background: 'transparent', 
+                                                    color: 'var(--gold)', 
                                                     padding: '25px', 
                                                     borderRadius: '12px', 
                                                     cursor: 'pointer', 
-                                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
-                                                    borderLeft: isActive ? '4px solid #3b82f6' : (isHovered ? '4px solid #eab308' : '4px solid transparent'), 
-                                                    boxShadow: isActive ? '0 8px 16px rgba(0,0,0,0.2)' : (isHovered ? '0 4px 8px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.05)'), 
-                                                    border: isActive ? 'none' : '1px solid rgba(255,255,255,0.05)', 
-                                                    backgroundColor: isActive ? 'var(--bg-card)' : (isHovered ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0,0,0,0.2)'),
-                                                    transform: isHovered && !isActive ? 'translateY(-2px)' : 'none'
+                                                    transition: 'all 0.3s ease', 
+                                                    fontSize: '1.1rem', 
+                                                    fontWeight: 'bold',
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    gap: '10px'
+                                                }} 
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = 'rgba(234, 179, 8, 0.1)';
+                                                    e.currentTarget.style.borderColor = 'var(--gold)';
+                                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                                }} 
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = 'transparent';
+                                                    e.currentTarget.style.borderColor = 'rgba(234, 179, 8, 0.5)';
+                                                    e.currentTarget.style.transform = 'none';
                                                 }}
                                             >
-                                                <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-                                                    <div style={{ color: 'var(--gold)', fontWeight: 'bold', fontSize: '1.2rem', marginTop: '8px' }}>{index + 1}.</div>
-                                                    <div style={{ flex: 1 }}>
-                                                        <input 
-                                                            type="text" 
-                                                            value={q.text} 
-                                                            onChange={(e) => updateQuestion(q.id, 'text', e.target.value)} 
-                                                            placeholder="Type question here..." 
-                                                            style={{ width: '100%', fontSize: '1.1rem', background: 'transparent', color: 'var(--text-main)', border: 'none', outline: 'none', padding: '10px 0', borderBottom: isActive || isHovered ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent', transition: 'border-color 0.3s' }} 
-                                                        />
-                                                        
-                                                        <div style={{ marginTop: '15px', transition: 'opacity 0.3s' }}>
-                                                            {q.type === 'likert' && (
-                                                                <div style={{ display: 'flex', gap: '20px', color: 'var(--text-sub)', fontSize: '0.9rem', alignItems: 'center', opacity: 0.5, pointerEvents: 'none' }}><span>1</span><input type="radio" disabled /><input type="radio" disabled /><input type="radio" disabled /><input type="radio" disabled /><input type="radio" disabled /><span>5</span></div>
-                                                            )}
-                                                            {q.type === 'yesno' && (
-                                                                <div style={{ display: 'flex', gap: '20px', color: 'var(--text-sub)', opacity: 0.5, pointerEvents: 'none' }}><label><input type="radio" disabled /> Yes</label><label><input type="radio" disabled /> No</label></div>
-                                                            )}
-                                                            {q.type === 'text' && (
-                                                                <div style={{ borderBottom: '1px dashed var(--text-sub)', width: '100%', height: '20px', opacity: 0.5, pointerEvents: 'none' }}></div>
-                                                            )}
-                                                            {q.type === 'textarea' && (
-                                                                <div style={{ border: '1px dashed var(--text-sub)', width: '100%', height: '60px', borderRadius: '4px', opacity: 0.5, pointerEvents: 'none' }}></div>
-                                                            )}
-                                                            {q.type === 'email' && (
-                                                                <div style={{ borderBottom: '1px dashed var(--text-sub)', width: '60%', height: '20px', opacity: 0.5, pointerEvents: 'none' }}></div>
-                                                            )}
-                                                            {q.type === 'date' && (
-                                                                <input type="date" disabled style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-sub)', padding: '8px', borderRadius: '6px', cursor: 'not-allowed', opacity: 0.5 }} />
-                                                            )}
-                                                            
-                                                            {['radio', 'checkbox', 'dropdown'].includes(q.type) && isActive && (
-                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
-                                                                    {(q.options || ['Option 1']).map((opt, optIndex) => (
-                                                                        <div key={optIndex} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                                            {q.type === 'radio' && <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid var(--text-sub)' }}></div>}
-                                                                            {q.type === 'checkbox' && <div style={{ width: '16px', height: '16px', borderRadius: '4px', border: '2px solid var(--text-sub)' }}></div>}
-                                                                            {q.type === 'dropdown' && <span style={{ color: 'var(--text-sub)', fontSize: '0.9rem' }}>{optIndex + 1}.</span>}
-                                                                            
-                                                                            <input 
-                                                                                type="text" 
-                                                                                value={opt} 
-                                                                                onChange={(e) => handleOptionTextChange(q.id, optIndex, e.target.value)} 
-                                                                                style={{ flex: 1, background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-main)', padding: '5px', outline: 'none' }}
-                                                                                placeholder={`Option ${optIndex + 1}`}
-                                                                            />
-                                                                            <button onClick={(e) => { e.stopPropagation(); handleRemoveOption(q.id, optIndex); }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.2rem', padding: '0 5px' }} title="Remove Option">×</button>
-                                                                        </div>
-                                                                    ))}
-                                                                    <button onClick={(e) => { e.stopPropagation(); handleAddOption(q.id); }} style={{ alignSelf: 'flex-start', background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', color: 'var(--gold)', cursor: 'pointer', fontSize: '0.85rem', padding: '6px 12px', borderRadius: '6px', marginTop: '8px' }}>+ Add Option</button>
-                                                                </div>
-                                                            )}
-
-                                                            {['radio', 'checkbox', 'dropdown'].includes(q.type) && !isActive && (
-                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-sub)', opacity: 0.5, pointerEvents: 'none' }}>
-                                                                    {(q.options || ['Option 1']).slice(0, 2).map((opt, i) => (
-                                                                        <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                            {q.type === 'radio' && <input type="radio" disabled />}
-                                                                            {q.type === 'checkbox' && <input type="checkbox" disabled />}
-                                                                            {q.type === 'dropdown' && <span>{i + 1}.</span>}
-                                                                            {opt}
-                                                                        </label>
-                                                                    ))}
-                                                                    {(q.options?.length || 0) > 2 && <span style={{ fontSize: '0.85rem', marginLeft: '25px' }}>...and {(q.options.length) - 2} more</span>}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div style={{ 
-                                                    marginTop: isActive || isHovered ? '20px' : '0', 
-                                                    paddingTop: isActive || isHovered ? '20px' : '0', 
-                                                    borderTop: isActive || isHovered ? '1px solid rgba(255,255,255,0.1)' : 'none', 
-                                                    display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '15px',
-                                                    maxHeight: isActive || isHovered ? '100px' : '0',
-                                                    opacity: isActive || isHovered ? 1 : 0,
-                                                    overflow: 'hidden',
-                                                    transition: 'all 0.3s ease'
-                                                }}>
-                                                    <select 
-                                                        className="correction-textbox" 
-                                                        value={q.type} 
-                                                        onChange={(e) => updateQuestion(q.id, 'type', e.target.value)} 
-                                                        style={{ width: '220px', margin: 0 }}
-                                                    >
-                                                        <option value="text">📝 Short answer</option>
-                                                        <option value="textarea">📄 Paragraph</option>
-                                                        <option value="email">📧 Email</option>
-                                                        <option value="date">📅 Date</option>
-                                                        <option value="yesno">✔️ Yes / No Option</option>
-                                                        <option value="radio">🔘 Multiple Choice</option>
-                                                        <option value="checkbox">☑️ Checkboxes (Multiple)</option>
-                                                        <option value="dropdown">🔽 Dropdown</option>
-                                                        <option value="likert">📊 Linear scale (1-5)</option>
-                                                    </select>
-                                                    
-                                                    <button 
-                                                        onClick={(e) => { e.stopPropagation(); deleteQuestion(q.id); }} 
-                                                        style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', cursor: 'pointer', fontSize: '1rem', padding: '10px 15px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.2s' }}
-                                                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
-                                                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-                                                    >
-                                                        🗑️ Delete
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-
-                                    <button 
-                                        onClick={addQuestion} 
-                                        style={{ 
-                                            border: '2px dashed rgba(234, 179, 8, 0.5)', 
-                                            background: 'transparent', 
-                                            color: 'var(--gold)', 
-                                            padding: '25px', 
-                                            borderRadius: '12px', 
-                                            cursor: 'pointer', 
-                                            transition: 'all 0.3s ease', 
-                                            fontSize: '1.1rem', 
-                                            fontWeight: 'bold',
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            gap: '10px'
-                                        }} 
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.background = 'rgba(234, 179, 8, 0.1)';
-                                            e.currentTarget.style.borderColor = 'var(--gold)';
-                                            e.currentTarget.style.transform = 'translateY(-2px)';
-                                        }} 
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.background = 'transparent';
-                                            e.currentTarget.style.borderColor = 'rgba(234, 179, 8, 0.5)';
-                                            e.currentTarget.style.transform = 'none';
-                                        }}
-                                    >
-                                        <span style={{ fontSize: '1.5rem' }}>➕</span> Add New Question
-                                    </button>
+                                                <span style={{ fontSize: '1.5rem' }}>➕</span> Add New Question
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         )}
