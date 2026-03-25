@@ -78,6 +78,35 @@ const CPE_CURRICULUM = [
     }
 ];
 
+const DEFAULT_PO_QUESTIONS = [
+    { id: 'qA1', poId: 'A', type: 'likert', text: 'Knowledge on mathematics and scientific concepts', weight: 30, options: ['Knows basic mathematical concepts related to engineering problems', 'Knows basic scientific concepts related to engineering problems', 'Knows how to solve mathematical complex problems related to engineering', 'Knows how to solve scientific complex problems related to engineering'] },
+    { id: 'qA2', poId: 'A', type: 'likert', text: 'Ability to apply knowledge in complex engineering problems', weight: 70, options: ['Able to apply and solve mathematical complex related engineering problems', 'Able to apply and solve scientific complex related engineering problems'] },
+    { id: 'qB1', poId: 'B', type: 'likert', text: 'Ability do design Laboratory experiments', weight: 20, options: ['Able to understand the objectives of the experiment', 'Able to understand the constraints of the experiment'] },
+    { id: 'qB2', poId: 'B', type: 'likert', text: 'Ability to conduct laboratory experiments', weight: 40, options: ['Ability to follow and practice safety precautions', 'Ability to strictly follow procedures correctly', 'Ability to set-up the apparatus and equipment properly'] },
+    { id: 'qB3', poId: 'B', type: 'likert', text: 'Ability to analyze and interpret laboratory experiments', weight: 40, options: ['Ability to collect relevant data during observation', 'Ability to interpret results correctly', 'Ability to formulate appropriate and reliable conclusion'] },
+    { id: 'qC1', poId: 'C', type: 'likert', text: 'Knowledge in designing a system or process', weight: 30, options: ['Able to identify the desired', 'Able to identify different needs constraints', 'Knowledge of Codes in safety and Health Standards'] },
+    { id: 'qC2', poId: 'C', type: 'likert', text: 'Ability to design and doing a system of process', weight: 70, options: ['Apply the appropriate and scientific mathematical and scientific concepts', 'Consider the applicable constraints in reference to standard', 'Ability to follow design guidelines and procedures', 'Validate the design'] },
+    { id: 'qD1', poId: 'D', type: 'likert', text: 'Personality Traits', weight: 30, options: ['Treat people with respect', 'Good communication skills', 'Cooperative and unbiased', 'Good Team Player'] },
+    { id: 'qD2', poId: 'D', type: 'likert', text: 'Working in Multidisciplinary Traits', weight: 70, options: ['Accepts responsibility', 'Contributor', 'Supportive to team mates', 'Achieve Results'] },
+    { id: 'qE1', poId: 'E', type: 'likert', text: 'Identify engineering problems', weight: 30, options: ['Understand the source of the engineering problems', 'Uses literature/journals to identify problem', 'Uses modem tools or equivalent to identify problem'] },
+    { id: 'qE2', poId: 'E', type: 'likert', text: 'Formulate the solutions to solve engineering problems', weight: 70, options: ['Use of modern tools to formulate and solve engineering problem', 'Implement the engineering solution', 'Validate the engineering solution'] },
+    { id: 'qF1', poId: 'F', type: 'likert', text: 'Professional Responsibility', weight: 50, options: ['Knowledge of professional norms and practices', 'Knowledge on engineering laws', 'Understanding of professional norms and practices', 'Understanding of engineering laws'] },
+    { id: 'qF2', poId: 'F', type: 'likert', text: 'Ethical Responsibility', weight: 50, options: ['Knowledge on Code of Ethics', 'Knowledge on Plagiarism', 'Understanding the principles of code of ethics', 'Understanding the plagiarisms'] },
+    { id: 'qG1', poId: 'G', type: 'likert', text: 'Listening', weight: 20, options: ['Good listening skills', 'Good Comprehension'] },
+    { id: 'qG2', poId: 'G', type: 'likert', text: 'Able to deliver good oral communication skills', weight: 40, options: ['Articulate and correct grammar', 'Clear and Organized Delivery', 'Good Gestures'] },
+    { id: 'qG3', poId: 'G', type: 'likert', text: 'Able to deliver good Written communication skills', weight: 40, options: ['Correct grammar', 'Organization and Sentence Fluency'] },
+    { id: 'qH1', poId: 'H', type: 'likert', text: 'Global Economic', weight: 50, options: ['Knowledge of global and economic impact of engineering solutions', 'Knowledge of the solution that will have good impact', 'Understands global & economic impact of engineering solutions', 'Understands the solution that will have good impact'] },
+    { id: 'qH2', poId: 'H', type: 'likert', text: 'Environmental Societal', weight: 50, options: ['Knowledge of Environmental impact of engineering solutions', 'Knowledge of societal impact of engineering solutions', 'Understands Environmental impact of engineering solutions', 'Understands societal impact of engineering solutions'] },
+    { id: 'qI1', poId: 'I', type: 'likert', text: 'Awareness of the need for lifelong learning', weight: 40, options: ['Recognizes the concept of life- long learning', 'Recognizes the need for life- long learning', 'Understands the concept of life- long learning', 'Understands the need for life- long learning'] },
+    { id: 'qI2', poId: 'I', type: 'likert', text: 'Life-long learning activities', weight: 60, options: ['Identifies activities that contribute to life-long learning', 'Pursues activities that contribute to life-long learning', 'Participates in activities', 'Shares life-long learning'] },
+    { id: 'qJ1', poId: 'J', type: 'likert', text: 'Knowledge/awareness of contemporary issues', weight: 40, options: ['Awareness of contemporary issues', 'Concern about contemporary issues', 'Action taken about contemporary issues'] },
+    { id: 'qJ2', poId: 'J', type: 'likert', text: 'Application of contemporary issues in research and/or thesis', weight: 60, options: ['Relevance of the Study', 'Implementation of the Study', 'Understanding the impact of the research to the contemporary issues'] },
+    { id: 'qK1', poId: 'K', type: 'likert', text: 'Knowledge of techniques, skills and engineering tools for engineering practice', weight: 30, options: ['Knowledge on different techniques for engineering practices', 'Skills possess to engineering practices', 'Modern engineering tools (BSCpE)'] },
+    { id: 'qK2', poId: 'K', type: 'likert', text: 'Ability to apply techniques, skills and engineering tools for engineering practice', weight: 70, options: ['Able to apply different techniques for engineering practices', 'Able to apply different skills in engineering practices', 'Modern engineering tools (BSCpE)'] },
+    { id: 'qL1', poId: 'L', type: 'likert', text: 'As a member', weight: 40, options: ['Knowledge and understanding of engineering and management principles', 'Apply engineering and management principles', 'Participative/Contributor'] },
+    { id: 'qL2', poId: 'L', type: 'likert', text: 'As a Leader', weight: 60, options: ['Knowledge and understanding of engineering and management principles', 'Apply engineering and management principles', 'Achieve project objective'] }
+];
+
 export default function ProgramChairDashboard() {
     const router = useRouter();
     const [isDarkMode, setIsDarkMode] = useState(true);
@@ -193,7 +222,7 @@ export default function ProgramChairDashboard() {
                 if (surveyFormType === 'po') {
                     setFormTitle('1st Year PO Survey');
                     setFormDesc('Evaluate your proficiency based on the scale: 1 (Lowest) to 5 (Highest).');
-                    setQuestions([{ id: 'q1', poId: 'A', text: 'Knowledge on mathematics and scientific concepts', options: ['Knows basic mathematical concepts related to engineering problems'], weight: 100 }]);
+                    setQuestions(DEFAULT_PO_QUESTIONS);
                 } else if (surveyFormType === 'peo') {
                     setFormTitle('3-5 Year PEO Survey');
                     setFormDesc('Evaluate your attainment of the Program Educational Objectives.');
