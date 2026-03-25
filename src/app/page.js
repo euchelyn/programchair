@@ -37,8 +37,8 @@ export default function LoginPage() {
       
       if (username === 'goodstudent' && password === '12345678') {
         const studentUser = { 
-            id: '2026-STUDENT-01', 
-            name: 'Sofia Reyes', 
+            id: '20241020067', 
+            name: 'Euch', 
             role: 'alumni',
             batch: '2026',
             program: 'B.S. Computer Engineering',
