@@ -4,6 +4,21 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import './alumni-globals.css';
 
+const PO_DEFINITIONS = [
+    { id: 'A', title: 'Engineering Knowledge', desc: 'Apply knowledge of mathematics, natural science, engineering fundamentals and an engineering specialization to the solution of complex engineering problems.' },
+    { id: 'B', title: 'Problem Analysis', desc: 'Conduct investigations of complex engineering problems using research-based knowledge and research methods including design of experiments, analysis and interpretation of data, and synthesis of information to provide valid conclusions.' },
+    { id: 'C', title: 'Design/Development of Solutions', desc: 'Design solutions for complex engineering problems and design systems, components or processes that meet specified needs with appropriate consideration for public health and safety, cultural, societal, and environmental considerations.' },
+    { id: 'D', title: 'Individual and Team Work', desc: 'Function effectively as an individual, and as a member or leader in diverse teams and in multi-disciplinary settings.' },
+    { id: 'E', title: 'Modern Tool Usage', desc: 'Identify, formulate, research literature and analyze complex engineering problems reaching substantiated conclusions using first principles of mathematics, natural sciences and engineering sciences.' },
+    { id: 'F', title: 'The Engineer and Society', desc: 'Apply ethical principles and commit to professional ethics and responsibilities and norms of engineering practice.' },
+    { id: 'G', title: 'Communication', desc: 'Communicate effectively on complex engineering activities with the engineering community and with society at large, such as being able to comprehend and write effective reports and design documentation, make effective presentations, and give and receive clear instructions.' },
+    { id: 'H', title: 'Environment and Sustainability', desc: 'Understand and evaluate the sustainability and impact of professional engineering work in the solution of complex engineering problems in societal and environmental context.' },
+    { id: 'I', title: 'Life-long Learning', desc: 'Recognize the need for, and have the preparation and ability to engage in independent and life-long learning in the broadest context of technological change.' },
+    { id: 'J', title: 'Ethics', desc: 'Apply reasoning informed by contextual knowledge to assess societal, health, safety, legal and cultural issues and the consequent responsibilities relevant to professional engineering practice and solutions to complex engineering problems.' },
+    { id: 'K', title: 'Investigation', desc: 'Create, select and apply appropriate techniques, resources, and modern engineering and IT tools, including prediction and modelling, to complex engineering problems with an understanding of the limitations.' },
+    { id: 'L', title: 'Project Management and Finance', desc: 'Demonstrate knowledge and understanding of engineering management principles and economic decision-making and apply these to one\'s own work, as a member and leader in a team, to manage projects and in multidisciplinary environments.' }
+];
+
 export default function AlumniDashboard() {
     const router = useRouter();
     const [isDarkMode, setIsDarkMode] = useState(true);
@@ -15,6 +30,8 @@ export default function AlumniDashboard() {
     const [isInviteOpen, setIsInviteOpen] = useState(false);
     
     const [dbUser, setDbUser] = useState(null);
+    const [courseMappings, setCourseMappings] = useState({});
+    const [courseWeights, setCourseWeights] = useState({});
 
     const [employerStatus, setEmployerStatus] = useState('Pending');
     const [employmentStatus, setEmploymentStatus] = useState(''); 
@@ -22,6 +39,7 @@ export default function AlumniDashboard() {
     const [companyName, setCompanyName] = useState('');
     const [savedJobStatus, setSavedJobStatus] = useState('Not Updated');
     const [showInviteBtn, setShowInviteBtn] = useState(true);
+    const [toastMessage, setToastMessage] = useState(null);
 
     const [userData, setUserData] = useState({
         name: 'Loading...',
@@ -42,6 +60,16 @@ export default function AlumniDashboard() {
         const session = JSON.parse(localStorage.getItem('current_user') || '{}');
         const db = JSON.parse(localStorage.getItem('obe_masterlist') || '[]');
         
+        const savedMappings = localStorage.getItem('obe_course_mappings');
+        if (savedMappings) {
+            setCourseMappings(JSON.parse(savedMappings));
+        }
+        
+        const savedWeights = localStorage.getItem('obe_course_weights');
+        if (savedWeights) {
+            setCourseWeights(JSON.parse(savedWeights));
+        }
+
         if (session && session.id) {
             const fullUser = db.find(student => student.id === session.id);
             
@@ -89,6 +117,11 @@ export default function AlumniDashboard() {
         }
     };
 
+    const showToast = (msg) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 3000);
+    };
+
     const handleSaveJobUpdate = () => {
         if (!dbUser) return;
         
@@ -113,7 +146,7 @@ export default function AlumniDashboard() {
         setEmploymentStatus('');
         setJobTitle('');
         setCompanyName('');
-        alert('Job Status Updated!');
+        showToast('Job Status Updated!');
     };
 
     const handleSendInvite = () => {
@@ -130,7 +163,7 @@ export default function AlumniDashboard() {
         localStorage.setItem('obe_masterlist', JSON.stringify(updatedDb));
         setEmployerStatus('sent');
         setIsInviteOpen(false);
-        alert('Official Invitation Sent!');
+        showToast('Official Invitation Sent!');
     };
 
     const currentYear = 2026;
@@ -145,21 +178,44 @@ export default function AlumniDashboard() {
     const isPEORequired = yearsSinceGrad >= 3;
     const peoUnlockYear = gradYear + 3;
 
-    let requiredSurveys = 3;
-    if (isPEORequired) requiredSurveys = 4;
+    let requiredTasks = 4;
+    if (isPEORequired) requiredTasks = 5;
 
-    let completedSurveys = 0;
+    let completedTasks = 0;
     let pendingList = [];
 
-    if (isPOCompleted) completedSurveys++; else pendingList.push('1st Year (PO Survey)');
-    if (isGTSCompleted) completedSurveys++; else pendingList.push('Graduate Tracer Study');
-    if (isYearlyCompleted) completedSurveys++; else pendingList.push(`Yearly Update (${currentYear})`);
+    if (isPOCompleted) completedTasks++; else pendingList.push('1st Year (PO Survey)');
+    if (isGTSCompleted) completedTasks++; else pendingList.push('Graduate Tracer Study');
+    if (isYearlyCompleted) completedTasks++; else pendingList.push(`Yearly Update (${currentYear})`);
     
     if (isPEORequired) {
-        if (isPEOCompleted) completedSurveys++; else pendingList.push('3-5 Year (PEO Survey)');
+        if (isPEOCompleted) completedTasks++; else pendingList.push('3-5 Year (PEO Survey)');
     }
 
-    const progressPercent = Math.round((completedSurveys / requiredSurveys) * 100);
+    if (savedJobStatus === 'Not Updated') {
+        pendingList.push('Update Employment Status');
+    } else if (savedJobStatus === 'employed' && employerStatus === 'Pending') {
+        pendingList.push('Send Employer Invitation');
+    } else {
+        completedTasks++;
+    }
+
+    const progressPercent = Math.round((completedTasks / requiredTasks) * 100);
+
+    const dynamicDeterminants = Object.keys(courseMappings).filter(course => Object.values(courseMappings[course]).some(v => v)).map((course, idx) => {
+        const mappedPOs = Object.keys(courseMappings[course]).filter(po => courseMappings[course][po]);
+        const parts = course.split(' ');
+        const code = parts.length > 1 ? `${parts[0]} ${parts[1]}` : course;
+        const name = parts.length > 2 ? parts.slice(2).join(' ') : course;
+        
+        return {
+            code: code,
+            name: name,
+            po: `Mapped POs: ${mappedPOs.join(', ')}`,
+            grade: dbUser?.obeStatus === 'Graded' ? 'Evaluated' : null,
+            icon: ['📐', '💻', '⚙️', '📊', '🔬'][idx % 5]
+        };
+    });
 
     const activeTabStyle = {
         padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 'bold', fontSize: '0.9rem',
@@ -278,7 +334,7 @@ export default function AlumniDashboard() {
                     <div style={{ backgroundColor: 'rgba(0,0,0,0.2)', padding: '15px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '5px' }}>
                         <h4 style={{ margin: '0 0 8px 0', color: 'var(--gold)', fontSize: '0.95rem' }}>📋 Details</h4>
                         <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text-main)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                            <li>Standardized CHED format.</li>
+                            <li>Tracks alumni, evaluating the relevance of their curriculum to workplace demands and assessing employment outcomes.</li>
                             <li>Covers complete educational & employment history.</li>
                             <li>Takes roughly 10-15 minutes.</li>
                         </ul>
@@ -327,7 +383,7 @@ export default function AlumniDashboard() {
                 </div>
             </aside>
 
-            <main className="main-content" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflowY: 'auto', padding: '40px' }}>
+            <main className="main-content" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflowY: 'auto', padding: '40px', position: 'relative' }}>
                 <header className="alumni-header">
                     <div className="profile-ring">
                         <div className="profile-pic" style={{ backgroundColor: '#ffd700', color: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', fontWeight: '500' }}>
@@ -392,7 +448,7 @@ export default function AlumniDashboard() {
                                 <div style={{ paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                                     {pendingList.length > 0 ? (
                                         <>
-                                            <p style={{ margin: '0 0 10px 0', fontSize: '0.85rem', color: 'var(--text-sub)' }}>Pending Forms to Submit:</p>
+                                            <p style={{ margin: '0 0 10px 0', fontSize: '0.85rem', color: 'var(--text-sub)' }}>Pending Action Items:</p>
                                             <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.9rem', color: 'var(--gold)', lineHeight: '1.6' }}>
                                                 {pendingList.map((item, i) => (
                                                     <li key={i}>{item}</li>
@@ -401,7 +457,7 @@ export default function AlumniDashboard() {
                                         </>
                                     ) : (
                                         <p style={{ margin: 0, fontSize: '0.95rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
-                                            ✅ All required surveys completed!
+                                            ✅ All required tasks completed!
                                         </p>
                                     )}
                                 </div>
@@ -511,36 +567,85 @@ export default function AlumniDashboard() {
 
                 {activeTab === 'determinants' && (
                     <div style={{ animation: 'fadeIn 0.3s ease', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto', paddingRight: '10px', flex: 1 }}>
-                        <div className="portal-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '30px', flexShrink: 0 }}>
+                        <div className="portal-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '30px', flexShrink: 0, borderLeft: dbUser?.obeStatus === 'Graded' ? '6px solid #10b981' : '6px solid #f59e0b' }}>
                             <div>
                                 <h2 style={{ color: 'var(--gold)', margin: '0 0 5px 0', fontSize: '1.5rem' }}>Direct Assessment Portfolio</h2>
-                                <p style={{ color: 'var(--text-sub)', fontSize: '0.95rem', margin: 0 }}>Synced in real-time from the Program Chair's Evaluation Masterlist.</p>
+                                <p style={{ color: 'var(--text-sub)', fontSize: '0.95rem', margin: 0 }}>Official Outcome-Based Education (OBE) grades evaluated by the Program Chair.</p>
+                                <p style={{ color: 'var(--text-sub)', fontSize: '0.85rem', margin: '10px 0 0 0', fontStyle: 'italic' }}>Grades are computed based on your performance in the determinant courses mapped to specific Program Outcomes.</p>
                             </div>
-                            <span style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '8px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                                ✅ Access Granted
-                            </span>
+                            <div style={{ textAlign: 'right' }}>
+                                <span style={{ backgroundColor: dbUser?.obeStatus === 'Graded' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)', color: dbUser?.obeStatus === 'Graded' ? '#10b981' : '#f59e0b', padding: '8px 16px', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 'bold', border: `1px solid ${dbUser?.obeStatus === 'Graded' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}` }}>
+                                    {dbUser?.obeStatus === 'Graded' ? '✅ Fully Evaluated' : '⏳ Pending Evaluation'}
+                                </span>
+                            </div>
                         </div>
 
+                        <h3 style={{ color: 'var(--gold)', margin: '10px 0 0 0', fontSize: '1.2rem' }}>Evaluated Determinants</h3>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-                            {(dbUser?.evaluatedCourses || [
-                                { code: 'Determinant 1', name: 'Mathematics & Basic Engineering', po: 'PO a-d', grade: dbUser?.det1Grade, icon: '📐' },
-                                { code: 'Determinant 2', name: 'Core Computer Engineering', po: 'PO e-h', grade: dbUser?.det2Grade, icon: '💻' },
-                                { code: 'Determinant 3', name: 'OJT & Capstone Design', po: 'PO i-l', grade: dbUser?.det3Grade, icon: '⚙️' }
-                            ]).map((course, idx) => (
-                                <div key={idx} className="portal-card" style={{ padding: '25px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <div style={{ fontSize: '2.5rem', marginBottom: '15px' }}>{course.icon || '📘'}</div>
+                            {dynamicDeterminants.length > 0 ? dynamicDeterminants.map((course, idx) => (
+                                <div key={idx} className="portal-card" style={{ padding: '25px', border: course.grade ? '1px solid rgba(16, 185, 129, 0.3)' : '1px dashed rgba(255,255,255,0.1)', transition: 'all 0.3s' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
+                                        <div style={{ fontSize: '2.5rem' }}>{course.icon || '📘'}</div>
+                                        {course.grade && <span style={{ backgroundColor: '#10b981', color: '#fff', fontSize: '0.7rem', fontWeight: 'bold', padding: '4px 8px', borderRadius: '12px' }}>GRADED</span>}
+                                    </div>
                                     <h3 style={{ margin: '0 0 5px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>{course.code}</h3>
                                     <p style={{ margin: '0 0 25px 0', fontSize: '0.9rem', color: 'var(--text-sub)' }}>{course.name} ({course.po})</p>
                                     
-                                    <div style={{ padding: '15px', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <div style={{ padding: '15px', backgroundColor: course.grade ? 'rgba(16, 185, 129, 0.05)' : 'rgba(0,0,0,0.3)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: course.grade ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(255,255,255,0.05)' }}>
                                         <span style={{ fontSize: '0.9rem', color: 'var(--text-sub)' }}>Evaluated Grade:</span>
-                                        <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: course.grade ? 'var(--gold)' : 'var(--text-main)' }}>
+                                        <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: course.grade ? '#10b981' : 'var(--text-main)' }}>
                                             {course.grade || 'Pending'}
                                         </span>
                                     </div>
                                 </div>
-                            ))}
+                            )) : (
+                                <div style={{ color: 'var(--text-sub)', fontStyle: 'italic', padding: '20px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                                    No determinant courses mapped yet.
+                                </div>
+                            )}
                         </div>
+
+                        <h3 style={{ color: 'var(--gold)', margin: '20px 0 0 0', fontSize: '1.2rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>Curriculum Mapping (Synced from PC)</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', paddingBottom: '40px' }}>
+                            {PO_DEFINITIONS.map(po => {
+                                const mappedCourses = Object.keys(courseMappings).filter(course => courseMappings[course][po.id]);
+                                if (mappedCourses.length === 0) return null;
+                                
+                                return (
+                                    <div key={po.id} className="portal-card" style={{ padding: '25px', borderTop: '4px solid var(--gold)', display: 'flex', flexDirection: 'column' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+                                            <span style={{ backgroundColor: 'var(--gold)', color: '#111827', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.9rem' }}>PO-{po.id}</span>
+                                            <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>{po.title}</h3>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                            {mappedCourses.map((course, idx) => (
+                                                <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(0,0,0,0.2)', padding: '12px 15px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                    <span style={{ color: 'var(--text-main)', fontSize: '0.9rem', lineHeight: '1.3', flex: 1, paddingRight: '15px' }}>{course}</span>
+                                                    <span style={{ color: 'var(--gold)', fontWeight: 'bold', fontSize: '0.9rem', backgroundColor: 'rgba(234, 179, 8, 0.1)', padding: '4px 8px', borderRadius: '4px' }}>
+                                                        {courseWeights[po.id]?.[course] || '0'}%
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            {Object.keys(courseMappings).length === 0 && (
+                                <div style={{ color: 'var(--text-sub)', fontStyle: 'italic', padding: '20px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                                    No curriculum mapping synced from the Program Chair yet.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {toastMessage && (
+                    <div style={{
+                        position: 'fixed', bottom: '30px', right: '30px', backgroundColor: '#10b981', color: 'white', padding: '15px 25px',
+                        borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', gap: '15px',
+                        zIndex: 1000, fontWeight: 'bold'
+                    }}>
+                        ✅ {toastMessage}
                     </div>
                 )}
             </main>
@@ -569,7 +674,7 @@ export default function AlumniDashboard() {
                         <textarea className="correction-textbox" placeholder="Halimbawa: Ang batch year ko po dapat ay 2026, hindi 2025..." style={{ height: '100px', padding: '15px', resize: 'none', marginBottom: '20px' }}></textarea>
                         <div style={{ display: 'flex', gap: '10px' }}>
                             <button className="outline-btn cancel-btn" onClick={() => setActiveModal(null)} style={{ padding: '10px', borderRadius: '8px', flex: 1 }}>Cancel</button>
-                            <button className="primary-btn" onClick={() => { alert('Request Sent to Program Chair!'); setActiveModal(null); }} style={{ padding: '10px', borderRadius: '8px', flex: 1, border: 'none' }}>Submit</button>
+                            <button className="primary-btn" onClick={() => { showToast('Request Sent to Program Chair!'); setActiveModal(null); }} style={{ padding: '10px', borderRadius: '8px', flex: 1, border: 'none' }}>Submit</button>
                         </div>
                     </div>
                 </div>
